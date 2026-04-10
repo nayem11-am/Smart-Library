@@ -85,8 +85,9 @@ export function useLibraryStore() {
           ? {
               ...book,
               available: Math.max(0, book.available - 1),
-              status:
-                book.available - 1 > 0 ? "available" : "on_loan",
+              status: (book.available - 1 > 0
+                ? "available"
+                : "on_loan") as LibraryBook["status"],
             }
           : book
       );
@@ -108,8 +109,9 @@ export function useLibraryStore() {
               ? {
                   ...book,
                   available: Math.min(book.quantity, book.available + 1),
-                  status:
-                    book.available + 1 > 0 ? "available" : "on_loan",
+                  status: (book.available + 1 > 0
+                    ? "available"
+                    : "on_loan") as LibraryBook["status"],
                 }
               : book
           )
