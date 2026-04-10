@@ -28,7 +28,8 @@ export default function AdminDashboardPage() {
   const [quantity, setQuantity] = useState(1);
   const [available, setAvailable] = useState(1);
   const [error, setError] = useState("");
-  const { store, addBook, updateBook, deleteBook } = useLibraryStore();
+  const { store, addBook, updateBook, deleteBook, returnBook } =
+    useLibraryStore();
   const books = store?.books ?? [];
   const [userSearch, setUserSearch] = useState("");
   const [users, setUsers] = useState<AppUser[]>([]);
