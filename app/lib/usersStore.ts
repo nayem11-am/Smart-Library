@@ -64,14 +64,21 @@ export function loadUsers(): AppUser[] {
   }
   try {
     const parsed = JSON.parse(raw) as AppUser[];
-    const seen = new Set<string>();
-    const normalized = parsed.map((user) => {
-      if (seen.has(user.id)) {
-        return { ...user, id: generateUserId() };
+    const seenIds = new Set<string>();
+    const seenEmails = new Set<string>();
+    const normalized = parsed.reduce<AppUser[]>((acc, user) => {
+      const emailKey = user.email?.trim().toLowerCase() || "";
+      if (seenIds.has(user.id)) {
+        return acc;
       }
-      seen.add(user.id);
-      return user;
-    });
+      if (emailKey && seenEmails.has(emailKey)) {
+        return acc;
+      }
+      seenIds.add(user.id);
+      if (emailKey) seenEmails.add(emailKey);
+      acc.push(user);
+      return acc;
+    }, []);
     if (normalized.length === 0) {
       const legacy = loadLegacyAuthUser();
       if (legacy) {
@@ -92,7 +99,10 @@ export function loadUsers(): AppUser[] {
         return seeded;
       }
     }
-    if (normalized.some((user, index) => user.id !== parsed[index]?.id)) {
+    if (
+      normalized.length !== parsed.length ||
+      normalized.some((user, index) => user.id !== parsed[index]?.id)
+    ) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     }
     return normalized;
@@ -111,6 +121,17 @@ export function saveUsers(users: AppUser[]) {
 export function addUser(user: AppUser) {
   const users = loadUsers();
   const ids = new Set(users.map((item) => item.id));
+  const emailKey = user.email?.trim().toLowerCase() || "";
+  const existing = emailKey
+    ? users.find((item) => item.email?.trim().toLowerCase() === emailKey)
+    : undefined;
+  if (existing) {
+    const next = users.map((item) =>
+      item.id === existing.id ? { ...item, ...user, id: existing.id } : item
+    );
+    saveUsers(next);
+    return next;
+  }
   const safeUser = ids.has(user.id)
     ? { ...user, id: generateUserId() }
     : user;
