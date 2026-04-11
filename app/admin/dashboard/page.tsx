@@ -21,6 +21,7 @@ export default function AdminDashboardPage() {
     "Dashboard" | "Manage Books" | "Users" | "Transactions"
   >("Dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -47,6 +48,19 @@ export default function AdminDashboardPage() {
     }
     setAdminEmail(session.email);
   }, [router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 768px)");
+    const handleChange = () => setIsMobile(media.matches);
+    handleChange();
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   useEffect(() => {
     setUsers(loadUsers());
@@ -233,8 +247,8 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-200 to-indigo-300 text-slate-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl gap-6 px-6 py-8 lg:px-10">
+    <div className="min-h-screen w-screen bg-gradient-to-br from-slate-100 via-indigo-200 to-indigo-300 text-slate-900">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-10 lg:py-8">
         <aside
           className={`relative hidden flex-col gap-6 rounded-3xl border border-white/70 bg-white/85 shadow-[0_22px_40px_rgba(15,23,42,0.08)] backdrop-blur transition-all duration-300 lg:flex ${
             sidebarCollapsed ? "w-20 px-4 py-6" : "w-64 p-6"
@@ -303,7 +317,7 @@ export default function AdminDashboardPage() {
         </aside>
 
         <div className="flex min-h-full flex-1 flex-col gap-6">
-          <header className="flex items-center justify-between rounded-3xl border border-white/70 bg-white/85 px-6 py-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur">
+          <header className="flex flex-col gap-4 rounded-3xl border border-white/70 bg-white/85 px-5 py-4 shadow-[0_18px_35px_rgba(15,23,42,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
                 Library Management
@@ -312,8 +326,8 @@ export default function AdminDashboardPage() {
                 Admin Dashboard
               </h1>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden text-right sm:block">
+            <div className="flex items-center gap-3 sm:justify-end">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-slate-800">
                   {adminEmail}
                 </p>
@@ -326,7 +340,76 @@ export default function AdminDashboardPage() {
           </header>
 
           <main className="flex flex-1 flex-col gap-6">
-            {active === "Manage Books" ? (
+            {isMobile ? (
+              <>
+                <section className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_24px_48px_rgba(15,23,42,0.08)] sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Mobile Summary
+                    </h2>
+                    <button
+                      onClick={() => {
+                        clearAdminSession();
+                        router.push("/admin");
+                      }}
+                      className="rounded-2xl border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Full admin controls are available on desktop. On mobile, you
+                    get a quick snapshot only.
+                  </p>
+                </section>
+
+                <section className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      title: "Total Books",
+                      value: books.length,
+                      tone: "from-indigo-600 to-indigo-400",
+                      icon: <StackIcon className="h-6 w-6 text-white" />,
+                    },
+                    {
+                      title: "Users",
+                      value: users.length,
+                      tone: "from-blue-500 to-cyan-400",
+                      icon: <UsersIcon className="h-6 w-6 text-white" />,
+                    },
+                    {
+                      title: "Borrowed",
+                      value: borrowedCount,
+                      tone: "from-emerald-600 to-emerald-400",
+                      icon: <BookIcon className="h-6 w-6 text-white" />,
+                    },
+                    {
+                      title: "Overdue",
+                      value: overdueCount,
+                      tone: "from-rose-600 to-rose-400",
+                      icon: <AlertIcon className="h-6 w-6 text-white" />,
+                    },
+                  ].map((card) => (
+                    <div
+                      key={card.title}
+                      className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
+                    >
+                      <div
+                        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.tone} shadow-[0_12px_24px_rgba(59,130,246,0.25)]`}
+                      >
+                        {card.icon}
+                      </div>
+                      <p className="text-sm font-semibold text-slate-600">
+                        {card.title}
+                      </p>
+                      <p className="mt-3 text-3xl font-semibold text-slate-900">
+                        {card.value}
+                      </p>
+                    </div>
+                  ))}
+                </section>
+              </>
+            ) : active === "Manage Books" ? (
               <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
