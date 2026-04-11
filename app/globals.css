@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+.table-scroll {
+  scrollbar-gutter: stable both-edges;
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.table-scroll::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.12);
+  border-radius: 999px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.45);
+  border-radius: 999px;
+}
+
+.users-scrollbar {
+  scrollbar-gutter: stable both-edges;
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+}
+
+.users-scrollbar::-webkit-scrollbar {
+  height: 14px;
+}
+
+.users-scrollbar::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.12);
+  border-radius: 999px;
+}
+
+.users-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.75);
+  border-radius: 999px;
+}

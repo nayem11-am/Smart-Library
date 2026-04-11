@@ -12,6 +12,10 @@ export default function DashboardPage() {
   >("Dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [borrowDays, setBorrowDays] = useState(14);
+  const [toast, setToast] = useState<null | {
+    message: string;
+    tone: "success" | "info" | "warning";
+  }>(null);
   const { store, rentBook, returnBook } = useLibraryStore();
   const router = useRouter();
 
@@ -39,7 +43,13 @@ export default function DashboardPage() {
 
   function handleBorrow(bookId: string) {
     const book = books.find((item) => item.id === bookId);
-    if (!book || book.status !== "available") return;
+    if (!book || book.status !== "available") {
+      setToast({
+        message: "This book is not available right now.",
+        tone: "warning",
+      });
+      return;
+    }
     const now = new Date();
     const due = new Date();
     due.setDate(now.getDate() + borrowDays);
@@ -50,6 +60,10 @@ export default function DashboardPage() {
       borrowedAt: now.toISOString().slice(0, 10),
       dueDate: due.toISOString().slice(0, 10),
       returned: false,
+    });
+    setToast({
+      message: `Borrowed "${book.title}". Due in ${borrowDays} days.`,
+      tone: "success",
     });
   }
 
@@ -68,8 +82,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-200 to-indigo-300 text-slate-900">
-      <div className="mx-auto flex h-screen w-full max-w-6xl gap-6 px-6 py-8 lg:px-10">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-indigo-200 to-indigo-300 text-slate-900">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl gap-6 px-6 py-8 lg:px-10">
         <aside
           className={`relative flex flex-col gap-6 rounded-3xl border border-white/70 bg-white/80 shadow-[0_22px_40px_rgba(15,23,42,0.08)] backdrop-blur transition-all duration-300 ${
             sidebarCollapsed ? "w-20 px-4" : "w-64 p-6"
@@ -87,7 +101,7 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={() => setSidebarCollapsed((prev) => !prev)}
-            className="absolute -right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-100 bg-white text-indigo-600 shadow-[0_12px_24px_rgba(79,70,229,0.2)] transition hover:-translate-y-[55%] hover:bg-indigo-50"
+            className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-100 bg-white text-indigo-600 shadow-[0_12px_24px_rgba(79,70,229,0.2)] transition hover:-translate-y-[55%] hover:bg-indigo-50 md:-right-4"
           >
             {sidebarCollapsed ? (
               <ArrowRightIcon className="h-4 w-4" />
@@ -436,6 +450,29 @@ export default function DashboardPage() {
           </main>
         </div>
       </div>
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 px-4">
+          <div
+            className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow-[0_18px_40px_rgba(15,23,42,0.18)] ${
+              toast.tone === "success"
+                ? "bg-emerald-600 text-white"
+                : toast.tone === "warning"
+                  ? "bg-amber-500 text-white"
+                  : "bg-slate-900 text-white"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span>{toast.message}</span>
+              <button
+                onClick={() => setToast(null)}
+                className="rounded-full bg-white/15 px-2 py-1 text-xs font-semibold text-white/90 transition hover:bg-white/25"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

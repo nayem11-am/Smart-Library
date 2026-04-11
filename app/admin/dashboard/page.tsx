@@ -22,6 +22,7 @@ export default function AdminDashboardPage() {
   >("Dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -247,11 +248,22 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-screen bg-gradient-to-br from-slate-100 via-indigo-200 to-indigo-300 text-slate-900">
+    <div className="min-h-screen w-screen overflow-x-hidden bg-gradient-to-br from-slate-100 via-indigo-200 to-indigo-300 text-slate-900">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:px-10 lg:py-8">
+        {isSidebarOpen && (
+          <button
+            aria-label="Close sidebar"
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-slate-900/30 lg:hidden"
+          />
+        )}
         <aside
-          className={`relative hidden flex-col gap-6 rounded-3xl border border-white/70 bg-white/85 shadow-[0_22px_40px_rgba(15,23,42,0.08)] backdrop-blur transition-all duration-300 lg:flex ${
+          className={`relative z-50 flex flex-col gap-6 rounded-3xl border border-white/70 bg-white/85 shadow-[0_22px_40px_rgba(15,23,42,0.08)] backdrop-blur transition-all duration-300 ${
             sidebarCollapsed ? "w-20 px-4 py-6" : "w-64 p-6"
+          } ${
+            isSidebarOpen
+              ? "fixed left-4 top-4 h-[calc(100%-2rem)]"
+              : "hidden lg:flex"
           }`}
         >
           <div>
@@ -266,7 +278,7 @@ export default function AdminDashboardPage() {
           </div>
           <button
             onClick={() => setSidebarCollapsed((prev) => !prev)}
-            className="absolute -right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-100 bg-white text-indigo-600 shadow-[0_12px_24px_rgba(79,70,229,0.2)] transition hover:-translate-y-[55%] hover:bg-indigo-50"
+            className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-100 bg-white text-indigo-600 shadow-[0_12px_24px_rgba(79,70,229,0.2)] transition hover:-translate-y-[55%] hover:bg-indigo-50 lg:-right-4"
           >
             {sidebarCollapsed ? (
               <ArrowRightIcon className="h-4 w-4" />
@@ -281,7 +293,11 @@ export default function AdminDashboardPage() {
                   key={item}
                   onClick={() =>
                     setActive(
-                      item as "Dashboard" | "Manage Books" | "Users" | "Transactions"
+                      item as
+                        | "Dashboard"
+                        | "Manage Books"
+                        | "Users"
+                        | "Transactions"
                     )
                   }
                   className={`rounded-2xl px-4 py-3 text-left transition ${
@@ -327,6 +343,21 @@ export default function AdminDashboardPage() {
               </h1>
             </div>
             <div className="flex items-center gap-3 sm:justify-end">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="rounded-full border border-indigo-100 bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 sm:hidden"
+              >
+                Menu
+              </button>
+              <button
+                onClick={() => {
+                  clearAdminSession();
+                  router.push("/admin");
+                }}
+                className="rounded-full border border-indigo-100 bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 sm:hidden"
+              >
+                Logout
+              </button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-slate-800">
                   {adminEmail}
@@ -340,78 +371,36 @@ export default function AdminDashboardPage() {
           </header>
 
           <main className="flex flex-1 flex-col gap-6">
-            {isMobile ? (
-              <>
-                <section className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_24px_48px_rgba(15,23,42,0.08)] sm:p-6">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Mobile Summary
-                    </h2>
+            {isMobile && (
+              <nav className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold text-slate-600">
+                {["Dashboard", "Manage Books", "Users", "Transactions"].map(
+                  (item) => (
                     <button
-                      onClick={() => {
-                        clearAdminSession();
-                        router.push("/admin");
-                      }}
-                      className="rounded-2xl border border-indigo-100 bg-white/80 px-4 py-2 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+                      key={item}
+                      onClick={() =>
+                        setActive(
+                          item as
+                            | "Dashboard"
+                            | "Manage Books"
+                            | "Users"
+                            | "Transactions"
+                        )
+                      }
+                      className={`whitespace-nowrap rounded-full px-4 py-2 transition ${
+                        item === active
+                          ? "bg-indigo-600 text-white shadow-[0_12px_24px_rgba(79,70,229,0.25)]"
+                          : "bg-white/80 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
+                      }`}
                     >
-                      Logout
+                      {item}
                     </button>
-                  </div>
-                  <p className="mt-2 text-sm text-slate-500">
-                    Full admin controls are available on desktop. On mobile, you
-                    get a quick snapshot only.
-                  </p>
-                </section>
-
-                <section className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      title: "Total Books",
-                      value: books.length,
-                      tone: "from-indigo-600 to-indigo-400",
-                      icon: <StackIcon className="h-6 w-6 text-white" />,
-                    },
-                    {
-                      title: "Users",
-                      value: users.length,
-                      tone: "from-blue-500 to-cyan-400",
-                      icon: <UsersIcon className="h-6 w-6 text-white" />,
-                    },
-                    {
-                      title: "Borrowed",
-                      value: borrowedCount,
-                      tone: "from-emerald-600 to-emerald-400",
-                      icon: <BookIcon className="h-6 w-6 text-white" />,
-                    },
-                    {
-                      title: "Overdue",
-                      value: overdueCount,
-                      tone: "from-rose-600 to-rose-400",
-                      icon: <AlertIcon className="h-6 w-6 text-white" />,
-                    },
-                  ].map((card) => (
-                    <div
-                      key={card.title}
-                      className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-[0_20px_40px_rgba(15,23,42,0.08)]"
-                    >
-                      <div
-                        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.tone} shadow-[0_12px_24px_rgba(59,130,246,0.25)]`}
-                      >
-                        {card.icon}
-                      </div>
-                      <p className="text-sm font-semibold text-slate-600">
-                        {card.title}
-                      </p>
-                      <p className="mt-3 text-3xl font-semibold text-slate-900">
-                        {card.value}
-                      </p>
-                    </div>
-                  ))}
-                </section>
-              </>
-            ) : active === "Manage Books" ? (
-              <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                  )
+                )}
+              </nav>
+            )}
+            {active === "Manage Books" ? (
+              <section className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-semibold text-slate-900">
                       Manage Books
@@ -429,8 +418,8 @@ export default function AdminDashboardPage() {
                   </button>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-2xl border border-indigo-100/70">
-                  <table className="w-full text-left text-sm">
+                <div className="mt-6 overflow-x-auto rounded-2xl border border-indigo-100/70">
+                  <table className="min-w-[640px] w-full text-left text-sm">
                     <thead className="bg-indigo-50 text-xs uppercase tracking-[0.2em] text-indigo-600">
                       <tr>
                         <th className="px-4 py-3">Title</th>
@@ -480,8 +469,8 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
             ) : active === "Users" ? (
-              <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <section className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-semibold text-slate-900">
                       Users
@@ -501,110 +490,23 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 hidden overflow-hidden rounded-2xl border border-indigo-100/70 lg:block">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-indigo-50 text-xs uppercase tracking-[0.2em] text-indigo-600">
-                      <tr>
-                        <th className="px-4 py-3">User Name</th>
-                        <th className="px-4 py-3">University ID</th>
-                        <th className="px-4 py-3">University Name</th>
-                        <th className="px-4 py-3">Mobile</th>
-                        <th className="px-4 py-3">Email</th>
-                        <th className="px-4 py-3">Password</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-indigo-100/70 bg-white">
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id}>
-                          <td className="px-4 py-3 font-semibold text-slate-800">
-                            {user.name}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            {user.universityId}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            {user.universityName}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            {user.mobile}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            {user.email}
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            {user.password}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                user.status === "active"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-rose-100 text-rose-700"
-                              }`}
-                            >
-                              {user.status === "active" ? "Active" : "Blocked"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleToggleUser(user.id)}
-                                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow-sm transition ${
-                                  user.status === "active"
-                                    ? "border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                                    : "border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                                }`}
-                              >
-                                {user.status === "active" ? (
-                                  <BlockIcon className="h-3.5 w-3.5" />
-                                ) : (
-                                  <UnlockIcon className="h-3.5 w-3.5" />
-                                )}
-                                {user.status === "active"
-                                  ? "Block"
-                                  : "Unblock"}
-                              </button>
-                              <button
-                                onClick={() => setSelectedUser(user)}
-                                className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
-                              >
-                                <ViewIcon className="h-3.5 w-3.5" />
-                                View
-                              </button>
-                              <button
-                                onClick={() => handleDeleteUser(user.id)}
-                                className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm transition hover:bg-rose-100"
-                              >
-                                <TrashIcon className="h-3.5 w-3.5" />
-                                Remove
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="mt-6 grid gap-4 lg:hidden">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="rounded-2xl border border-indigo-100/70 bg-white p-4 shadow-sm"
+                      className="rounded-2xl border border-indigo-100/70 bg-white p-3 shadow-sm"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-sm font-semibold text-slate-800">
+                          <p className="text-xs font-semibold text-slate-800">
                             {user.name}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-[11px] text-slate-500">
                             {user.universityName}
                           </p>
                         </div>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                             user.status === "active"
                               ? "bg-emerald-100 text-emerald-700"
                               : "bg-rose-100 text-rose-700"
@@ -613,22 +515,16 @@ export default function AdminDashboardPage() {
                           {user.status === "active" ? "Active" : "Blocked"}
                         </span>
                       </div>
-                      <div className="mt-3 text-xs text-slate-500">
-                        ID: {user.universityId}
+                      <div className="mt-2 space-y-0.5 text-[11px] text-slate-500">
+                        <p>ID: {user.universityId}</p>
+                        <p>Mobile: {user.mobile}</p>
+                        <p>Email: {user.email}</p>
+                        <p>Password: {user.password}</p>
                       </div>
-                      <div className="text-xs text-slate-500">
-                        Mobile: {user.mobile}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        Email: {user.email}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        Password: {user.password}
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         <button
                           onClick={() => handleToggleUser(user.id)}
-                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow-sm transition ${
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm transition ${
                             user.status === "active"
                               ? "border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
                               : "border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
@@ -643,14 +539,85 @@ export default function AdminDashboardPage() {
                         </button>
                         <button
                           onClick={() => setSelectedUser(user)}
-                          className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+                          className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
                         >
                           <ViewIcon className="h-3.5 w-3.5" />
                           View
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm transition hover:bg-rose-100"
+                          className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600 shadow-sm transition hover:bg-rose-100"
+                        >
+                          <TrashIcon className="h-3.5 w-3.5" />
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 grid gap-4 lg:hidden">
+                  {filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="rounded-2xl border border-indigo-100/70 bg-white p-3 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-800">
+                            {user.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500">
+                            {user.universityName}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                            user.status === "active"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-rose-100 text-rose-700"
+                          }`}
+                        >
+                          {user.status === "active" ? "Active" : "Blocked"}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-[11px] text-slate-500">
+                        ID: {user.universityId}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Mobile: {user.mobile}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Email: {user.email}
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Password: {user.password}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleToggleUser(user.id)}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm transition ${
+                            user.status === "active"
+                              ? "border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                              : "border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          }`}
+                        >
+                          {user.status === "active" ? (
+                            <BlockIcon className="h-3.5 w-3.5" />
+                          ) : (
+                            <UnlockIcon className="h-3.5 w-3.5" />
+                          )}
+                          {user.status === "active" ? "Block" : "Unblock"}
+                        </button>
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+                        >
+                          <ViewIcon className="h-3.5 w-3.5" />
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600 shadow-sm transition hover:bg-rose-100"
                         >
                           <TrashIcon className="h-3.5 w-3.5" />
                           Remove
@@ -661,8 +628,8 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
             ) : active === "Transactions" ? (
-              <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <section className="rounded-3xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_48px_rgba(15,23,42,0.08)]">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-semibold text-slate-900">
                       Transactions
